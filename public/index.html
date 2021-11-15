@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Forward Email</title>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <h1>Email Aliases</h1>
+    <p>Add unlimited email addresses</p>
+    <ol id="aliases"></ol>
+    <form id="edit-alias" action="#">
+      <label>Edit Alias</label>
+      <select id="aliases-dropdown"></select>
+      <input id="alias1" type="text" placeholder="Enter New Alias" />
+      <select id="endpoint1" class="enter-endpoint" placeholder="Enter New Endpoint" />
+      <input type="submit" />
+    </form>
+    <form id="add-alias" action="#">
+      <label>Add Alias</label>
+      <input id="alias2" type="text" placeholder="Enter Alias" />
+      <select id="endpoint2" class="enter-endpoint" placeholder="Enter Endpoint" />
+      <input type="submit" />
+    </form>
+    <form id="delete-alias" action="#">
+      <label>Delete Alias</label>
+      <select id="delete-aliases-dropdown"></select>
+      <input type="submit" />
+    </form>
+    <form id="import-gdomains" action="#">
+      <input id="file-gdomains" type="file" accept=".mhtml,.html" placeholder="import Google Domains" />
+      <input type="submit" />
+    </form>
+    <br /><p id="msgs">MESSAGES:</p>
+    <script>
+      const { ipcRenderer } = require('electron');
+
+      ipcRenderer.on("update-aliases", async (event, args) => {
+        let aliases = document.getElementById("aliases");
+        aliases.innerHTML = "";
+        let dropdown = document.getElementById("aliases-dropdown");
+        dropdown.innerHTML = "";
+        let del_dropdown = document.getElementById("delete-aliases-dropdown");
+        del_dropdown.innerHTML = "";
+        args.aliases.forEach(alias => {
+          let text = `${alias.alias} - ${alias.endpoint}`;
+          let item = document.createElement("li");
+          item.innerHTML = text;
+          aliases.appendChild(item);
+          let option = document.createElement("option");
+          option.innerHTML = text;
+          dropdown.appendChild(option);
+          let option_del = document.createElement("option");
+          option_del.innerHTML = text;
+          del_dropdown.appendChild(option_del);
+        });
+        let endpoints = document.getElementsByClassName("enter-endpoint");
+        for (let i=0; i<2; ++i) {
+          endpoints[i].innerHTML = "";
+          for (let j=0; j<args.endpoints.length; ++j) {
+            let option = document.createElement("option");
+            option.innerHTML = `${args.endpoints[j].nickname} - ${args.endpoints[j].email}`
+            endpoints[i].appendChild(option);
+          }
+        }
+      });
+
+      ipcRenderer.on("msg", async (event, args) => {
+        document.getElementById("msgs").innerHTML += "<br />" + args.msg;
+      });
+
+      document.getElementById("edit-alias").addEventListener("submit", form => {
+        ipcRenderer.send("edit-alias", {
+          index: document.getElementById("aliases-dropdown").options.selectedIndex,
+          new: {
+            alias: document.getElementById("alias1").value,
+            endpoint: document.getElementById("endpoint1").options.selectedIndex,
+          },
+        });
+      });
+      
+      document.getElementById("add-alias").addEventListener("submit", form => {
+        ipcRenderer.send("add-alias", {
+          alias: document.getElementById("alias2").value,
+          endpoint: document.getElementById("endpoint2").options.selectedIndex,
+        });
+      });
+
+      document.getElementById("delete-alias").addEventListener("submit", form => {
+        ipcRenderer.send("delete-alias", {
+          index: document.getElementById("delete-aliases-dropdown").options.selectedIndex,
+        });
+      });
+      
+      document.getElementById("import-gdomains").addEventListener("submit", form => {
+        ipcRenderer.send("import-gdomains", {
+          path: document.getElementById("file-gdomains").files[0].path,
+        });
+      });
+
+      ipcRenderer.send("load-aliases");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "forward_email",
+  "productName": "forward_email",
+  "version": "1.0.0",
+  "description": "Use the Cloudflare API to make unlimited email aliases, importing from Google Domains.",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "Gavin Mason",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "electron": "^13.1.4",
+    "electron-squirrel-startup": "^1.0.0",
+    "jsdom": "^17.0.0"
+  }
+}
